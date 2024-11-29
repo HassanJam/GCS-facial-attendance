@@ -272,6 +272,7 @@ def get_last_log():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch last log: {str(e)}")
    
+
     
 def find_employee_image(employee_id: int) -> str:
     employee_folder = os.path.join(IMAGE_FOLDER, str(employee_id))
