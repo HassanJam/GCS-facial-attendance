@@ -222,6 +222,18 @@ def get_today_logs():
         logging.error(f"Failed to fetch logs: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch logs")
 
+@app.post("/app_attendance")
+async def mark_attendance(file: UploadFile = File(...)):
+    """
+    Endpoint to accept an image and print details.
+    """
+    # Print information about the uploaded file
+    print(f"Received file: {file.filename}")
+    print(f"Content type: {file.content_type}")
+
+    return {"message": "Attendance marked successfully!"}
+
+
 @app.get("/last_log/", response_model=PopupResponse)
 def get_last_log():
     current_date = datetime.now().date()
