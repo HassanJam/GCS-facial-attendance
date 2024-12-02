@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AiOutlineReload } from "react-icons/ai";
 import Navbar from "./Navbar";
+import backgroundImage from "../assets/background.jpg"; // Path to your background image
 
 const api = "http://127.0.0.1:8001";
 
@@ -60,18 +61,19 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-red-400 via-red-500 to-red-600 flex flex-col justify-between">
-
+    <div
+      className="min-h-screen flex flex-col justify-between"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       {/* Main Content */}
       <main className="flex flex-col items-center w-full px-6 py-12 space-y-8">
         {/* Header */}
         <header className="flex flex-col items-center space-y-4">
-          <img
-            src={logo}
-            alt="Company Logo"
-            className="w-32 h-auto"
-          />
-          <h1 className="text-4xl font-semibold text-gray-800">GCS Attendance System</h1>
+          <h1 className="text-4xl font-semibold text-black-800">GCS Attendance System</h1>
           <p className="text-lg text-gray-600">Manage and view attendance in real-time</p>
         </header>
 
@@ -79,13 +81,21 @@ const HomePage = () => {
         <div className="flex justify-start space-x-6 text-gray-800 text-lg">
           <button
             onClick={() => setSelectedTab("live")}
-            className={`py-3 px-8 rounded-lg ${selectedTab === "live" ? "bg-red-500 text-white" : "bg-transparent hover:bg-red-200"} transition-all duration-300`}
+            className={`py-3 px-8 rounded-lg ${
+              selectedTab === "live"
+                ? "bg-red-500 text-black-800"
+                : "bg-transparent hover:bg-red-200"
+            } transition-all duration-300`}
           >
             Live
           </button>
           <button
             onClick={() => setSelectedTab("table")}
-            className={`py-3 px-8 rounded-lg ${selectedTab === "table" ? "bg-red-500 text-white" : "bg-transparent hover:bg-red-200"} transition-all duration-300`}
+            className={`py-3 px-8 rounded-lg ${
+              selectedTab === "table"
+                ? "bg-red-500 text-black-800"
+                : "bg-transparent hover:bg-red-200"
+            } transition-all duration-300`}
           >
             Table
           </button>
@@ -94,13 +104,17 @@ const HomePage = () => {
         {/* Content based on selected tab */}
         {selectedTab === "live" && (
           <div className="space-y-6 w-full max-w-5xl bg-white rounded-xl p-8 shadow-lg">
-            <h2 className="text-2xl font-semibold text-gray-700 text-center">Live Attendance Log</h2>
+            <h2 className="text-2xl font-semibold text-gray-700 text-center">
+              Live Attendance Log
+            </h2>
 
             {/* Modal for new attendance log */}
             {isModalOpen && (
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
                 <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-2xl">
-                  <h3 className="text-3xl font-semibold text-gray-700 mb-6">New Attendance Log</h3>
+                  <h3 className="text-3xl font-semibold text-gray-700 mb-6">
+                    New Attendance Log
+                  </h3>
                   <div className="flex items-center space-x-8">
                     <div className="flex-shrink-0">
                       <img
@@ -137,7 +151,9 @@ const HomePage = () => {
 
         {selectedTab === "table" && (
           <div className="w-full max-w-6xl bg-white rounded-xl p-8 shadow-lg">
-            <h2 className="text-2xl font-semibold text-gray-700 text-center">Attendance Logs</h2>
+            <h2 className="text-2xl font-semibold text-gray-700 text-center">
+              Attendance Logs
+            </h2>
             <AttendanceTable records={records} />
           </div>
         )}

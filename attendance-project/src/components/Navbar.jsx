@@ -4,11 +4,11 @@ import logo from "../assets/gcs.png"; // Ensure the correct path for the logo
 
 const Navbar = () => {
   return (
-    <nav className="bg-gray-800 w-full px-6 py-4 text-white shadow-md"> {/* Change background color */}
+    <nav className="bg-transparent w-full px-6 py-4 text-white shadow-md"> {/* Change background color */}
       <div className="flex items-center justify-between">
         {/* Logo */}
         <Link to="/">
-          <img src={logo} alt="Company Logo" className="w-12 h-auto" />
+          <img src={logo} alt="Company Logo" className="w-22 h-16" /> {/* Increased height */}
         </Link>
 
         {/* Navigation Links */}

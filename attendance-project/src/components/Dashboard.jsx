@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import UpdateEncoding from "./UpdateEncoding";
+import backgroundImage from "../assets/background.jpg"; // Update with the correct path to your image
 
 const Dashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -19,7 +20,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-red-50 p-4">
+    <div
+      className="flex flex-col justify-center items-center min-h-screen p-4"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       {/* Ask if the user is an admin */}
       {!isAdmin && !isAuthenticated && (
         <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full mb-4 text-center">
