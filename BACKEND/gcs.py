@@ -240,6 +240,76 @@ def mark_late_employees(cursor, mydb, current_date):
                     mydb.commit()
                     print(f"Marked employee {employee_id} as late for {current_date} (Logged in after 11:00 AM).")
 
+
+
+
+def match_face_from_picture(image):
+    """Matches a face from the given picture (image) with the encodings stored in the database."""
+    mydb = get_db_connection()
+    cursor = mydb.cursor()
+    try:
+        # Check if the image is None (i.e., not loaded properly)
+        if image is None:
+            print("Error: The image is not loaded correctly (None).")
+            return "Failure"
+        
+        # Check if the image is a valid NumPy array
+        if not isinstance(image, (np.ndarray, np.generic)):
+            print("Error: The image is not a valid NumPy array.")
+            return "Failure"
+
+        # Check the shape of the image (should be 3-dimensional for a color image)
+        if len(image.shape) != 3:
+            print(f"Error: The image has an invalid shape: {image.shape}. It should be 3-dimensional.")
+            return "Failure"
+        
+        # Resize the image (with debugging checks)
+        try:
+            img_small = cv2.resize(image, (0, 0), fx=0.25, fy=0.25)
+        except Exception as e:
+            print(f"Error in resizing the image: {e}")
+            return "Failure"
+
+        # Convert the image to RGB
+        img_rgb = cv2.cvtColor(img_small, cv2.COLOR_BGR2RGB)
+
+        # Find face locations and encodings in the image
+        face_locations = face_recognition.face_locations(img_rgb)
+        face_encodings = face_recognition.face_encodings(img_rgb, face_locations)
+
+        if not face_encodings:
+            print("No faces detected in the image.")
+            return "Failure"
+
+        # Load the known encodings from the database
+        employee_encodings = load_known_encodings(cursor)
+
+        for encode_face, face_location in zip(face_encodings, face_locations):
+            best_distance = float('inf')
+            employee_id_best = None
+
+            # Compare the face encoding from the image to each known encoding
+            for employee_id, known_encodings in employee_encodings.items():
+                for known_encoding in known_encodings:
+                    face_distance = face_recognition.face_distance([known_encoding], encode_face)[0]
+                    if face_distance < best_distance:
+                        best_distance = face_distance
+                        employee_id_best = employee_id
+
+            # Check if the best match is below the threshold
+            if best_distance < 0.38:
+                print(f"Match found for employee {employee_id_best} with distance {best_distance:.2f}")
+                return "Success"
+            else:
+                print("No matching face found.")
+                return "Failure"
+
+    except Exception as e:
+        print(f"Error in matching face from picture: {e}")
+        return "Failure"
+
+
+
 def main():
     """Main function to run the attendance system."""
     mydb = get_db_connection()
@@ -286,4 +356,4 @@ def main():
     mydb.close()
 
 if __name__ == "__main__":
-    main()
+    match_face_from_picture("D:\\Hassan\\gcs\\GCS-facial-attendance\\BACKEND\\images\\62\\62_1.jpg")

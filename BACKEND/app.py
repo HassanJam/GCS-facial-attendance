@@ -15,7 +15,8 @@ import os
 import django
 import face_recognition
 from fastapi.staticfiles import StaticFiles
-
+import numpy as np
+from gcs import match_face_from_picture
 
 app = FastAPI()
 IMAGE_FOLDER = './images'
@@ -221,17 +222,21 @@ def get_today_logs():
     except Exception as e:
         logging.error(f"Failed to fetch logs: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch logs")
-
+def convert_image_to_numpy(image_bytes: bytes):
+    """Convert bytes to a NumPy array image that OpenCV can process."""
+    np_arr = np.frombuffer(image_bytes, np.uint8)
+    image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)  # Decode image
+    if image is None:
+        raise ValueError("Failed to decode image")
+    return image
 @app.post("/app_attendance")
 async def mark_attendance(file: UploadFile = File(...)):
-    """
-    Endpoint to accept an image and print details.
-    """
-    # Print information about the uploaded file
-    print(f"Received file: {file.filename}")
-    print(f"Content type: {file.content_type}")
-
-    return {"message": "Attendance marked successfully!"}
+    image_bytes = await file.read()
+    image = convert_image_to_numpy(image_bytes)
+    
+    # Now call the match function with the image
+    result = match_face_from_picture(image)
+    return {"result": result}
 
 
 @app.get("/last_log/", response_model=PopupResponse)
