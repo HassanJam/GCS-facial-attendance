@@ -231,18 +231,8 @@ def convert_image_to_numpy(image_bytes: bytes):
     return image
 
 
-import mysql.connector
-from datetime import datetime
-from fastapi import HTTPException, File, Form, UploadFile
 
-# Database connection function (make sure this is properly defined elsewhere)
-def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="your_username",  # Replace with your MySQL username
-        password="your_password",  # Replace with your MySQL password
-        database="your_database"  # Replace with your database name
-    )
+
 
 @app.post("/app_attendance")
 async def mark_attendance(
