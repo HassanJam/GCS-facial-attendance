@@ -299,7 +299,7 @@ def match_face_from_picture(image):
             # Check if the best match is below the threshold
             if best_distance < 0.38:
                 print(f"Match found for employee {employee_id_best} with distance {best_distance:.2f}")
-                return "Success"
+                return "Success" , employee_id_best
             else:
                 print("No matching face found.")
                 return "Failure"

@@ -24,7 +24,7 @@ app.mount("/images", StaticFiles(directory=IMAGE_FOLDER), name="images")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5174","http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -235,7 +235,8 @@ async def mark_attendance(file: UploadFile = File(...)):
     image = convert_image_to_numpy(image_bytes)
     
     # Now call the match function with the image
-    result = match_face_from_picture(image)
+    result , employee_id = match_face_from_picture(image)
+    
     return {"result": result}
 
 
