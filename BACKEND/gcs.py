@@ -242,53 +242,54 @@ def mark_late_employees(cursor, mydb, current_date):
 
 
 
+import cv2
+import numpy as np
+import face_recognition
+from typing import Tuple
 
-def match_face_from_picture(image):
+def match_face_from_picture(image) -> Tuple[str, int]:
     """Matches a face from the given picture (image) with the encodings stored in the database."""
     mydb = get_db_connection()
     cursor = mydb.cursor()
+    employee_id_best = None  # Initialize to avoid NameError
     try:
-        # Check if the image is None (i.e., not loaded properly)
+        # Validate the image
         if image is None:
             print("Error: The image is not loaded correctly (None).")
-            return "Failure"
-        
-        # Check if the image is a valid NumPy array
+            return "Failure", employee_id_best
+
         if not isinstance(image, (np.ndarray, np.generic)):
             print("Error: The image is not a valid NumPy array.")
-            return "Failure"
+            return "Failure", employee_id_best
 
-        # Check the shape of the image (should be 3-dimensional for a color image)
         if len(image.shape) != 3:
             print(f"Error: The image has an invalid shape: {image.shape}. It should be 3-dimensional.")
-            return "Failure"
-        
-        # Resize the image (with debugging checks)
+            return "Failure", employee_id_best
+
+        # Resize the image
         try:
             img_small = cv2.resize(image, (0, 0), fx=0.25, fy=0.25)
         except Exception as e:
             print(f"Error in resizing the image: {e}")
-            return "Failure"
+            return "Failure", employee_id_best
 
-        # Convert the image to RGB
+        # Convert to RGB
         img_rgb = cv2.cvtColor(img_small, cv2.COLOR_BGR2RGB)
 
-        # Find face locations and encodings in the image
+        # Find face locations and encodings
         face_locations = face_recognition.face_locations(img_rgb)
         face_encodings = face_recognition.face_encodings(img_rgb, face_locations)
 
         if not face_encodings:
             print("No faces detected in the image.")
-            return "Failure"
+            return "Failure", employee_id_best
 
-        # Load the known encodings from the database
+        # Load known encodings
         employee_encodings = load_known_encodings(cursor)
+        best_distance = float('inf')
 
-        for encode_face, face_location in zip(face_encodings, face_locations):
-            best_distance = float('inf')
-            employee_id_best = None
-
-            # Compare the face encoding from the image to each known encoding
+        # Compare detected faces with known encodings
+        for encode_face in face_encodings:
             for employee_id, known_encodings in employee_encodings.items():
                 for known_encoding in known_encodings:
                     face_distance = face_recognition.face_distance([known_encoding], encode_face)[0]
@@ -296,17 +297,18 @@ def match_face_from_picture(image):
                         best_distance = face_distance
                         employee_id_best = employee_id
 
-            # Check if the best match is below the threshold
-            if best_distance < 0.38:
-                print(f"Match found for employee {employee_id_best} with distance {best_distance:.2f}")
-                return "Success"
-            else:
-                print("No matching face found.")
-                return "Failure"
+        # Threshold check
+        if best_distance < 0.38:
+            print(f"Match found for employee {employee_id_best} with distance {best_distance:.2f}")
+            return "Success", employee_id_best
+
+        print("No matching face found.")
+        return "Failure", employee_id_best
 
     except Exception as e:
         print(f"Error in matching face from picture: {e}")
-        return "Failure"
+        return "Failure", employee_id_best
+
 
 
 
