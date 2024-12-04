@@ -4,7 +4,7 @@ import cv2
 import uvicorn
 logging.basicConfig(level=logging.INFO)
 import pydantic
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect,Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, constr
 from typing import List
@@ -230,12 +230,19 @@ def convert_image_to_numpy(image_bytes: bytes):
         raise ValueError("Failed to decode image")
     return image
 @app.post("/app_attendance")
-async def mark_attendance(file: UploadFile = File(...)):
+async def mark_attendance(file: UploadFile = File(...),
+                          x: str = Form(..., description="X-coordinate as a string"),
+                          y: str = Form(..., description="Y-coordinate as a string")):
+    
+    
+    print("x ",x)
+    print("y ",y)
     image_bytes = await file.read()
     image = convert_image_to_numpy(image_bytes)
     
     # Now call the match function with the image
     result , employee_id = match_face_from_picture(image)
+    
     
     return {"result": result}
 
