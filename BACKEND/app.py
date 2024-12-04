@@ -17,7 +17,7 @@ import face_recognition
 from fastapi.staticfiles import StaticFiles
 import numpy as np
 from gcs import match_face_from_picture
-
+from reverse_geocoding_test import reverse_geocode
 app = FastAPI()
 IMAGE_FOLDER = './images'
 app.mount("/images", StaticFiles(directory=IMAGE_FOLDER), name="images")
@@ -232,17 +232,21 @@ def convert_image_to_numpy(image_bytes: bytes):
 @app.post("/app_attendance")
 async def mark_attendance(file: UploadFile = File(...),
                           x: str = Form(..., description="X-coordinate as a string"),
-                          y: str = Form(..., description="Y-coordinate as a string")):
+                          y: str = Form(..., description="Y-coordinate as a string"),
+                          log_type: str = Form(..., description="Log type as a string")):
     
     
     print("x ",x)
     print("y ",y)
+    print("log_type ",log_type)
     image_bytes = await file.read()
     image = convert_image_to_numpy(image_bytes)
     
     # Now call the match function with the image
     result , employee_id = match_face_from_picture(image)
-    
+    address = reverse_geocode(float(x), float(y))
+    print(f"The address for coordinates ({x}, {y}) is:\n{address}")
+
     
     return {"result": result}
 
