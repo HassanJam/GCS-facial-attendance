@@ -28,4 +28,3 @@ if __name__ == "__main__":
     latitude = 31.5092109
     longitude = 74.3369365
     address = reverse_geocode(latitude, longitude)
-    print(f"The address for coordinates ({latitude}, {longitude}) is:\n{address}")
