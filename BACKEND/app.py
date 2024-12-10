@@ -259,16 +259,17 @@ async def mark_attendance(
             print(f"The address for coordinates ({x}, {y}) is:\n{address}")
 
             # Get the current time and date
-            current_time = datetime.now().time()
-            current_date = datetime.now().date()
-
-            # Establish a database connection
+            current_time = datetime.now()
+            current_date = current_time.date()
+            print("current_date:", current_date)
+            print("current_time:", current_time.time())
+                # Establish a database connection
             mydb = get_db_connection()
             cursor = mydb.cursor()
 
             # Step 1: Check if the employee already marked attendance for the day and log type
             check_query = """
-                SELECT COUNT(*) FROM employee_management_temp_app_attendance
+                SELECT COUNT(*) FROM employee_management_temp_appattendance
                 WHERE employee_id = %s AND date = %s AND log_type = %s
             """
             cursor.execute(check_query, (employee_id, current_date, log_type))
@@ -282,13 +283,13 @@ async def mark_attendance(
 
             # Step 2: Insert the data into the database (only if no existing entry found)
             insert_query = """
-                INSERT INTO employee_management_temp_app_attendance 
-                (employee_id, time, date, log_type, x_coordinate, y_coordinate, location_address)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO employee_management_temp_appattendance 
+                (employee_id, time, date, log_type, x_coordinate, y_coordinate, location_address, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
             """
             cursor.execute(insert_query, (
                 employee_id,
-                current_time,
+                current_time.time(),
                 current_date,
                 log_type,
                 x,

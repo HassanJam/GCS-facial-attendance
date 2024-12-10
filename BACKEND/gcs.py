@@ -358,4 +358,4 @@ def main():
     mydb.close()
 
 if __name__ == "__main__":
-    match_face_from_picture("D:\\Hassan\\gcs\\GCS-facial-attendance\\BACKEND\\images\\62\\62_1.jpg")
+    main()
