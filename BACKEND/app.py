@@ -229,26 +229,94 @@ def convert_image_to_numpy(image_bytes: bytes):
     if image is None:
         raise ValueError("Failed to decode image")
     return image
-@app.post("/app_attendance")
-async def mark_attendance(file: UploadFile = File(...),
-                          x: str = Form(..., description="X-coordinate as a string"),
-                          y: str = Form(..., description="Y-coordinate as a string"),
-                          log_type: str = Form(..., description="Log type as a string")):
-    
-    
-    print("x ",x)
-    print("y ",y)
-    print("log_type ",log_type)
-    image_bytes = await file.read()
-    image = convert_image_to_numpy(image_bytes)
-    
-    # Now call the match function with the image
-    result , employee_id = match_face_from_picture(image)
-    address = reverse_geocode(float(x), float(y))
-    print(f"The address for coordinates ({x}, {y}) is:\n{address}")
 
-    
-    return {"result": result}
+
+
+
+
+@app.post("/app_attendance")
+async def mark_attendance(
+    file: UploadFile = File(...),
+    x: str = Form(..., description="X-coordinate as a string"),
+    y: str = Form(..., description="Y-coordinate as a string"),
+    log_type: str = Form(..., description="Log type as a string")
+):
+    try:
+        print("x:", x)
+        print("y:", y)
+        print("log_type:", log_type)
+
+        # Read and convert the image
+        image_bytes = await file.read()
+        image = convert_image_to_numpy(image_bytes)
+
+        # Call the match function with the image
+        result, employee_id = match_face_from_picture(image)
+
+        if result == "Success":
+            # Reverse geocode the coordinates to get the address
+            address = reverse_geocode(float(x), float(y))
+            print(f"The address for coordinates ({x}, {y}) is:\n{address}")
+
+            # Get the current time and date
+            current_time = datetime.now()
+            current_date = current_time.date()
+            print("current_date:", current_date)
+            print("current_time:", current_time.time())
+                # Establish a database connection
+            mydb = get_db_connection()
+            cursor = mydb.cursor()
+
+            # Step 1: Check if the employee already marked attendance for the day and log type
+            check_query = """
+                SELECT COUNT(*) FROM employee_management_temp_appattendance
+                WHERE employee_id = %s AND date = %s AND log_type = %s
+            """
+            cursor.execute(check_query, (employee_id, current_date, log_type))
+            result_count = cursor.fetchone()[0]
+
+            if result_count > 0:
+                # If there's already an entry, return a message and skip insertion
+                cursor.close()
+                mydb.close()
+                return {"result": "Failure", "message": "Attendance for this employee has already been marked for today with this log type"}
+
+            # Step 2: Insert the data into the database (only if no existing entry found)
+            insert_query = """
+                INSERT INTO employee_management_temp_appattendance 
+                (employee_id, time, date, log_type, x_coordinate, y_coordinate, location_address, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
+            """
+            cursor.execute(insert_query, (
+                employee_id,
+                current_time.time(),
+                current_date,
+                log_type,
+                x,
+                y,
+                address
+            ))
+
+            # Commit the transaction
+            mydb.commit()
+
+            # Close the cursor and connection
+            cursor.close()
+            mydb.close()
+
+            return {"result": "Attendance marked successfully", "employee_id": employee_id}
+
+        else:
+            return {"result": "Failure", "message": "Face matching failed"}
+
+    except mysql.connector.Error as err:
+        print(f"Database error: {err}")
+        raise HTTPException(status_code=500, detail="Database error occurred while marking attendance")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="An error occurred while marking attendance")
+
 
 
 @app.get("/last_log/", response_model=PopupResponse)
