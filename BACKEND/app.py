@@ -239,7 +239,8 @@ async def mark_attendance(
     file: UploadFile = File(...),
     x: str = Form(..., description="X-coordinate as a string"),
     y: str = Form(..., description="Y-coordinate as a string"),
-    log_type: str = Form(..., description="Log type as a string")
+    log_type: str = Form(..., description="Log type as a string"),
+    employeeid: int = Form(..., description="Employee ID as an integer")
 ):
     try:
         print("x:", x)
@@ -252,6 +253,9 @@ async def mark_attendance(
 
         # Call the match function with the image
         result, employee_id = match_face_from_picture(image)
+        
+        print("result:", result)
+        print("employee_id:", employee_id)
 
         if result == "Success":
             # Reverse geocode the coordinates to get the address
