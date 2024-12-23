@@ -26,10 +26,23 @@ def today_attendance(cursor, mydb, employee_id, log_time):
         attendance_record = cursor.fetchone()
 
         if not attendance_record:  # No record for the day
+            print("hours",log_time.hour)
+            if log_time.hour > 11:  # If time-in is before 11 AM
+                print(f"Cannot log time-in for employee {employee_id} before 11:00 AM.")
+                sql = '''
+                INSERT INTO employee_management_attendance 
+                (employee_id, date, time_in, status, comments, hours_worked, is_overtime,Location)
+                VALUES (%s, %s, %s, %s, %s, NULL, 0,%s)
+            '''
+                val = (employee_id, date, log_time.time(), "late", "Logged late in","office")
+                cursor.execute(sql, val)
+                mydb.commit()
+                return
             sql = '''
                 INSERT INTO employee_management_attendance 
-                (employee_id, date, time_in, status, comments, hours_worked, is_overtime)
-                VALUES (%s, %s, %s, %s, %s, NULL, 0)
+                (employee_id, date, time_in, status, comments
+                , hours_worked, is_overtime,Location)
+                VALUES (%s, %s, %s, %s, %s, NULL, 0,"office")
             '''
             val = (employee_id, date, log_time.time(), "present", "Logged in")
             cursor.execute(sql, val)
@@ -186,6 +199,7 @@ def mark_absent_employees(cursor, mydb, current_date):
             # Check if the employee is already marked as absent
             absent_check_query = "SELECT * FROM employee_management_attendance WHERE employee_id=%s AND date=%s AND status='absent'"
             cursor.execute(absent_check_query, (employee_id, current_date))
+            mydb.commit()
             absent_record = cursor.fetchall()
 
             if not absent_record:  # If no absence record exists
@@ -207,7 +221,9 @@ def cleanupdata(cursor, current_date):
     
     
 def mark_late_employees(cursor, mydb, current_date):
+    print("Marking late employees")
     cursor.execute("SELECT id FROM employee_management_employee")  
+    mydb.commit()
     all_employees = cursor.fetchall()
 
     for (employee_id,) in all_employees:
@@ -222,23 +238,24 @@ def mark_late_employees(cursor, mydb, current_date):
             time_in = attendance_record[0][0]
             
             # Check if the time_in is after 11:00 AM
-            if time_in.hour >= 11:  # Late if time_in is 11 AM or later
-                # Check if the employee is already marked as late
-                late_check_query = "SELECT * FROM employee_management_attendance WHERE employee_id=%s AND date=%s AND status='late'"
-                cursor.execute(late_check_query, (employee_id, current_date))
-                late_record = cursor.fetchall()
+            # Check if the employee is already marked as late
+            late_check_query = "SELECT * FROM employee_management_attendance WHERE employee_id=%s AND date=%s AND status='late'"
+            cursor.execute(late_check_query, (employee_id, current_date))
+            late_record = cursor.fetchall()
+            mydb.commit()
 
-                if not late_record:  # If no late record exists
-                    # If time_in is after 11 AM, mark as late
-                    sql = '''
-                        INSERT INTO employee_management_attendance 
-                        (employee_id, date, time_in, status, comments, hours_worked, is_overtime)
-                        VALUES (%s, %s, %s, %s, %s, NULL, 0)
-                    '''
-                    val = (employee_id, current_date, time_in, "late", "Logged in after 11:00 AM")  # Store actual time_in
-                    cursor.execute(sql, val)
-                    mydb.commit()
-                    print(f"Marked employee {employee_id} as late for {current_date} (Logged in after 11:00 AM).")
+            if not late_record:  # If no late record exists
+                print("Marking")
+                # If time_in is after 11 AM, mark as late
+                sql = '''
+                    INSERT INTO employee_management_attendance 
+                    (employee_id, date, time_in, status, comments, hours_worked, is_overtime)
+                    VALUES (%s, %s, %s, %s, %s, NULL, 0)
+                '''
+                val = (employee_id, current_date, time_in, "late", "Logged in after 11:00 AM")  # Store actual time_in
+                cursor.execute(sql, val)
+                mydb.commit()
+                print(f"Marked employee {employee_id} as late for {current_date} (Logged in after 11:00 AM).")
 
 
 
@@ -345,8 +362,9 @@ def main():
         if current_time.hour == 16 and 17 <= current_time.minute <= 20:
             mark_absent_employees(cursor, mydb, current_date)
             cleanupdata(cursor,current_date)
-        if current_time.hour == 11 and 1 <= current_time.minute <= 5:
-             mark_late_employees(cursor, mydb, current_date)
+        # if current_time.hour == 16 and 9 <= current_time.minute <= 20:
+        #     print("goinf to mark late employees")
+        #     mark_late_employees(cursor, mydb, current_date)
 
             
         if cv2.waitKey(1) & 0xFF == ord('q'):
