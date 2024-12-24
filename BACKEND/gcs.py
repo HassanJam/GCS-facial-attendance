@@ -347,9 +347,10 @@ def main():
 
     # Load encodings
     employee_encodings = load_known_encodings(cursor)
-    url = "rtsp://admin:Admin123@192.168.0.215:554/channel/1"
+    print("EMployee encodings ",employee_encodings)
+    url = "rtsp://admin:Admin123@192.168.0.212:554/Streaming/Channels/101"
 
-    cap, fps = start_stream(0)
+    cap, fps = start_stream(url)
     fps.update()
 
     refresh_interval = 60
