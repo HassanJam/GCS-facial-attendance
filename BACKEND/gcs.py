@@ -115,6 +115,13 @@ def reconnect_database(mydb, cursor):
 
 def log_raw_data(cursor, mydb, employee_id, log_time):
     """Log raw attendance data."""
+    
+    # first check if employee record exists in the database limit 1 desc
+    
+    #cursor.execute("SELECT * FROM employee_management_employee WHERE id=%s", (employee_id,))
+
+    
+    
     try:
         query = '''
             INSERT INTO rawdata (employee_id, log_type, log_time, date)
