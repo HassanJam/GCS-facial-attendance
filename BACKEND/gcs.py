@@ -3,7 +3,8 @@ import mysql.connector
 from datetime import datetime, timedelta
 import cv2
 import face_recognition
-
+from checkinimutil import WebCamVideoStream,FPS
+import time
 def get_db_connection():
     """Establish and return a connection to the MySQL database."""
     try:
@@ -334,7 +335,10 @@ def match_face_from_picture(image) -> Tuple[str, int]:
         return "Failure", employee_id_best
 
 
-
+def start_stream(url):
+    video_stream = WebCamVideoStream(url).start()
+    fps = FPS().start()
+    return video_stream, fps
 
 def main():
     """Main function to run the attendance system."""
@@ -343,23 +347,38 @@ def main():
 
     # Load encodings
     employee_encodings = load_known_encodings(cursor)
+    url = "rtsp://admin:Admin123@192.168.0.215:554/channel/1"
 
-    cap = cv2.VideoCapture(0)
-    cap.set(3, 1280)  # Width
-    cap.set(4, 720)   # Height
+    cap, fps = start_stream(0)
+    fps.update()
 
     refresh_interval = 60
     last_check_time = datetime.now()
+
+    # Set window name and dimensions
+    window_name = "Attendance Camera"
+    screen_width = 1280  # Desired width
+    screen_height = 720  # Desired height
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)  # Create a resizable window
+    cv2.resizeWindow(window_name, screen_width, screen_height)
 
     while True:
         current_time = datetime.now()
         current_date = current_time.date()
 
-
         success, img = cap.read()
+        if not success:
+            print("Attempting to reconnect...")
+            cap.stop()  # Use the stop method
+            time.sleep(1)
+            cap, fps = start_stream(url)  # Reinitialize stream
+            continue
         if success:
             img = process_camera_frame(cursor, mydb, img, employee_encodings)
-            cv2.imshow("Attendance Camera", img)
+            
+            # Resize the frame to fit the desired window dimensions
+            img = cv2.resize(img, (screen_width, screen_height))
+            cv2.imshow(window_name, img)
 
         # Refresh known encodings every minute
         if (datetime.now() - last_check_time).total_seconds() >= refresh_interval:
@@ -368,19 +387,17 @@ def main():
 
         if current_time.hour == 16 and 17 <= current_time.minute <= 20:
             mark_absent_employees(cursor, mydb, current_date)
-            cleanupdata(cursor,current_date)
-        # if current_time.hour == 16 and 9 <= current_time.minute <= 20:
-        #     print("goinf to mark late employees")
-        #     mark_late_employees(cursor, mydb, current_date)
+            cleanupdata(cursor, current_date)
 
-            
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
     cv2.destroyAllWindows()
+    fps.stop()
     cursor.close()
     mydb.close()
+
 
 if __name__ == "__main__":
     main()
