@@ -347,9 +347,9 @@ def main():
 
     # Load encodings
     employee_encodings = load_known_encodings(cursor)
-    url = "rtsp://admin:Admin123@192.168.0.215:554/channel/1"
+    url = "rtsp://admin:Admin123@192.168.0.212:554/channel/1"
 
-    cap, fps = start_stream(0)
+    cap, fps = start_stream(url)
     fps.update()
 
     refresh_interval = 60
@@ -359,7 +359,7 @@ def main():
     window_name = "Attendance Camera"
     screen_width = 1280  # Desired width
     screen_height = 720  # Desired height
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)  # Create a resizable window
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)  
     cv2.resizeWindow(window_name, screen_width, screen_height)
 
     while True:
