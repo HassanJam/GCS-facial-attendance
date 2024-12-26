@@ -38,7 +38,7 @@ def today_attendance(cursor, mydb, employee_id, log_time):
                 val = (employee_id, date, log_time.time(), "late", "Logged late in","office")
                 cursor.execute(sql, val)
                 mydb.commit()
-                return
+                return 'in'
             sql = '''
                 INSERT INTO employee_management_attendance 
                 (employee_id, date, time_in, status, comments
@@ -49,6 +49,7 @@ def today_attendance(cursor, mydb, employee_id, log_time):
             cursor.execute(sql, val)
             mydb.commit()
             print(f"Time-in logged for employee {employee_id} at {log_time}.")
+            return 'in'
         else:
             time_in, time_out = attendance_record
             if time_in is not None:
@@ -73,6 +74,7 @@ def today_attendance(cursor, mydb, employee_id, log_time):
                         cursor.execute(update_query, (log_time.time(), worked, overtime, employee_id, date))
                         mydb.commit()
                         print(f"Time-out updated for employee {employee_id} at {log_time}.")
+                        return 'out'
                     else:
                         print(f"Cannot update time-out for employee {employee_id} until 1 minute has passed since time-in.")
                 else:
@@ -89,6 +91,7 @@ def today_attendance(cursor, mydb, employee_id, log_time):
                     cursor.execute(update_query, (log_time.time(), worked, overtime, employee_id, date))
                     mydb.commit()
                     print(f"Updating Time-out for employee {employee_id}.")
+                    return 'out'
                     
             else:
                 print(f"Time-in is missing for employee {employee_id}.")
@@ -114,7 +117,7 @@ def reconnect_database(mydb, cursor):
     cursor = mydb.cursor()
     return mydb, cursor
 
-def log_raw_data(cursor, mydb, employee_id, log_time):
+def log_raw_data(cursor, mydb, employee_id, log_time,log_type):
     """Log raw attendance data."""
     
     # first check if employee record exists in the database limit 1 desc
@@ -128,7 +131,7 @@ def log_raw_data(cursor, mydb, employee_id, log_time):
             INSERT INTO rawdata (employee_id, log_type, log_time, date)
             VALUES (%s, %s, %s, %s)
         '''
-        log_type = "in/out"
+
         values = (employee_id, log_type, log_time, log_time.date())
         cursor.execute(query, values)
         mydb.commit()
@@ -177,8 +180,8 @@ def process_camera_frame(cursor, mydb, img, employee_encodings):
 
         if best_distance < 0.38:
             current_time = datetime.now()
-            today_attendance(cursor, mydb, employee_id_best, current_time)
-            log_raw_data(cursor, mydb, employee_id_best, current_time)
+            log_type= today_attendance(cursor, mydb, employee_id_best, current_time)
+            log_raw_data(cursor, mydb, employee_id_best, current_time,log_type)
 
             # Draw rectangle and add label for the recognized face
             top, right, bottom, left = face_location
