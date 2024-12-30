@@ -253,65 +253,68 @@ async def mark_attendance(
 
         # Call the match function with the image
         result, employee_id = match_face_from_picture(image)
-        
-        print("result:", result)
-        print("employee_id:", employee_id)
+        if employee_id == employeeid:
+            print("result:", result)
+            print("employee_id:", employee_id)
 
-        if result == "Success":
-            # Reverse geocode the coordinates to get the address
-            address = reverse_geocode(float(x), float(y))
-            print(f"The address for coordinates ({x}, {y}) is:\n{address}")
+            if result == "Success":
+                # Reverse geocode the coordinates to get the address
+                address = reverse_geocode(float(x), float(y))
+                print(f"The address for coordinates ({x}, {y}) is:\n{address}")
 
-            # Get the current time and date
-            current_time = datetime.now()
-            current_date = current_time.date()
-            print("current_date:", current_date)
-            print("current_time:", current_time.time())
-                # Establish a database connection
-            mydb = get_db_connection()
-            cursor = mydb.cursor()
+                # Get the current time and date
+                current_time = datetime.now()
+                current_date = current_time.date()
+                print("current_date:", current_date)
+                print("current_time:", current_time.time())
+                    # Establish a database connection
+                mydb = get_db_connection()
+                cursor = mydb.cursor()
 
-            # Step 1: Check if the employee already marked attendance for the day and log type
-            check_query = """
-                SELECT COUNT(*) FROM employee_management_temp_appattendance
-                WHERE employee_id = %s AND date = %s AND log_type = %s
-            """
-            cursor.execute(check_query, (employee_id, current_date, log_type))
-            result_count = cursor.fetchone()[0]
+                # Step 1: Check if the employee already marked attendance for the day and log type
+                check_query = """
+                    SELECT COUNT(*) FROM employee_management_temp_appattendance
+                    WHERE employee_id = %s AND date = %s AND log_type = %s
+                """
+                cursor.execute(check_query, (employee_id, current_date, log_type))
+                result_count = cursor.fetchone()[0]
 
-            if result_count > 0:
-                # If there's already an entry, return a message and skip insertion
+                if result_count > 0:
+                    # If there's already an entry, return a message and skip insertion
+                    cursor.close()
+                    mydb.close()
+                    return {"result": "Failure", "message": "Attendance for this employee has already been marked for today with this log type"}
+
+                # Step 2: Insert the data into the database (only if no existing entry found)
+                insert_query = """
+                    INSERT INTO employee_management_temp_appattendance 
+                    (employee_id, time, date, log_type, x_coordinate, y_coordinate, location_address, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
+                """
+                cursor.execute(insert_query, (
+                    employee_id,
+                    current_time.time(),
+                    current_date,
+                    log_type,
+                    x,
+                    y,
+                    address
+                ))
+
+                # Commit the transaction
+                mydb.commit()
+
+                # Close the cursor and connection
                 cursor.close()
                 mydb.close()
-                return {"result": "Failure", "message": "Attendance for this employee has already been marked for today with this log type"}
 
-            # Step 2: Insert the data into the database (only if no existing entry found)
-            insert_query = """
-                INSERT INTO employee_management_temp_appattendance 
-                (employee_id, time, date, log_type, x_coordinate, y_coordinate, location_address, status)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
-            """
-            cursor.execute(insert_query, (
-                employee_id,
-                current_time.time(),
-                current_date,
-                log_type,
-                x,
-                y,
-                address
-            ))
+                return {"result": "Attendance marked successfully", "employee_id": employee_id}
 
-            # Commit the transaction
-            mydb.commit()
-
-            # Close the cursor and connection
-            cursor.close()
-            mydb.close()
-
-            return {"result": "Attendance marked successfully", "employee_id": employee_id}
-
+            else:
+                return {"result": "Failure", "message": "Face matching failed"}
         else:
-            return {"result": "Failure", "message": "Face matching failed"}
+            print("Unauthorized access")
+            return {"result": "Failure", "message": "Unauthorized access"}
 
     except mysql.connector.Error as err:
         print(f"Database error: {err}")
