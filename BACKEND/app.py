@@ -234,7 +234,7 @@ def convert_image_to_numpy(image_bytes: bytes):
 
 
 
-@app.post("/app_attendance")
+@app.post("/app_attendance/")
 async def mark_attendance(
     file: UploadFile = File(...),
     x: str = Form(..., description="X-coordinate as a string"),
