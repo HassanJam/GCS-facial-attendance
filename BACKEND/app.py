@@ -32,7 +32,7 @@ app.add_middleware(
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="localhost", user="root", password="root", database="cms"
+        host="localhost", user="root", password="12345678", database="cms"
     )
 
 class AttendanceRecord(BaseModel):
@@ -311,10 +311,10 @@ async def mark_attendance(
                 return {"result": "Attendance marked successfully", "employee_id": employee_id}
 
             else:
-                return {"result": "Failure", "message": "Face matching failed"}
+                return {"result": "Failure", "message": "No matching face found"}
         else:
             print("Unauthorized access")
-            return {"result": "Failure", "message": "Unauthorized access"}
+            return {"result": "Failure", "message": "Employee ID does not match face"}
 
     except mysql.connector.Error as err:
         print(f"Database error: {err}")
