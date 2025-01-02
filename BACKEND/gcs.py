@@ -12,7 +12,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host="localhost",
             user="root",
-            password="12345678",
+            password="root",
             database="cms"
         )
     except mysql.connector.Error as e:
@@ -383,8 +383,9 @@ def main():
     employee_encodings = load_known_encodings(cursor)
     url = "rtsp://admin:Admin123@192.168.0.212:554/channel/1"
 
-    cap, fps = start_stream(url)
-    fps.update()
+    #cap, fps = start_stream(url)
+    cap = cv2.VideoCapture(0)
+    #fps.update()
 
     refresh_interval = 60
     last_check_time = datetime.now()
@@ -407,7 +408,7 @@ def main():
             print("Attempting to reconnect...")
             cap.stop()  # Use the stop method
             time.sleep(1)
-            cap, fps = start_stream(url)  # Reinitialize stream
+           # cap, fps = start_stream(url)  # Reinitialize stream
             continue
         if success:
             img = process_camera_frame(cursor, mydb, img, employee_encodings)
@@ -422,7 +423,6 @@ def main():
             last_check_time = datetime.now()
 
         if current_time.hour == 16 and 17 <= current_time.minute <= 20:
-            mark_absent_employees(cursor, mydb, current_date)
             cleanupdata(cursor, current_date)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -430,7 +430,7 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
-    fps.stop()
+   # fps.stop()
     cursor.close()
     mydb.close()
 

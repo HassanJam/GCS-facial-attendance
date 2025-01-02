@@ -1,25 +1,45 @@
 import time
 from datetime import datetime, timedelta
-from gcs import get_db_connection
+import mysql.connector
+def get_db_connection():
+    """Establish and return a connection to the MySQL database."""
+    try:
+        return mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="root",
+            database="cms"
+        )
+    except mysql.connector.Error as e:
+        print(f"Database connection failed: {e}")
+        exit(1)
+
+import time
+from datetime import datetime, timedelta
 
 def run_at_midnight(task_func):
-    """Runs the given task function at midnight every day."""
+    """Runs the given task function at 5:07 PM every day."""
     while True:
         # Get the current time
         now = datetime.now()
         print(f"Current time: {now}")
         
-        # Calculate the next midnight
-        tomorrow = now + timedelta(days=1)
-        next_midnight = datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0)
-        time_until_midnight = (next_midnight - now).total_seconds()
+        # Calculate the next 5:07 PM today
+        target_time = datetime(now.year, now.month, now.day, 17, 7, 0)  # 5:07 PM today
         
-        print(f"Waiting {time_until_midnight} seconds until midnight...")
-        time.sleep(time_until_midnight)  # Wait until midnight
+        # If it's already past 5:07 PM, set the target to 5:07 PM tomorrow
+        if now > target_time:
+            target_time = datetime(now.year, now.month, now.day, 17, 7, 0) + timedelta(days=1)
         
-        # Run the task at midnight
+        time_until_target = (target_time - now).total_seconds()
+        
+        print(f"Waiting {time_until_target} seconds until 5:07 PM...")
+        time.sleep(time_until_target)  # Wait until 5:07 PM
+        
+        # Run the task at 5:07 PM
         print(f"Task started at: {datetime.now()}")
-        task_func()
+        
+        
 def mark_employee_absent(employee_id):
     """Marks the given employee as absent for the current day."""
     query = f"INSERT INTO employee_management_employee (employee_id, date, status) VALUES ({employee_id}, CURDATE(), 'absent')"
