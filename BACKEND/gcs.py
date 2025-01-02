@@ -12,7 +12,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host="localhost",
             user="root",
-            password="root",
+            password="12345678",
             database="cms"
         )
     except mysql.connector.Error as e:
@@ -27,7 +27,9 @@ def today_attendance(cursor, mydb, employee_id, log_time):
         
         attendance_record = cursor.fetchone()
 
-        if not attendance_record:  # No record for the day
+        print("attendance_record",attendance_record)
+
+        if not attendance_record or attendance_record == (None, None) :  # No record for the day
             print("hours",log_time.hour)
             if log_time.hour > 11:  # If time-in is before 11 AM
                 print(f"Cannot log time-in for employee {employee_id} before 11:00 AM.")
@@ -130,45 +132,29 @@ def reconnect_database(mydb, cursor):
     cursor = mydb.cursor()
     return mydb, cursor
 
-def log_raw_data(cursor, mydb, employee_id, log_time, log_type):
-    """Log raw attendance data, avoiding duplicate entries for the same employee within 10 seconds."""
+from datetime import datetime
+
+def log_raw_data(cursor, mydb, employee_id, log_time,log_type):
+    """Log raw attendance data."""
+    
+    # first check if employee record exists in the database limit 1 desc
+    
+    #cursor.execute("SELECT * FROM employee_management_employee WHERE id=%s", (employee_id,))
+
+    print("log_type", log_type)
     
     try:
-        # Check the last log entry for the same employee
-        check_query = '''
-            SELECT log_time 
-            FROM rawdata 
-            WHERE employee_id = %s 
-            ORDER BY log_time DESC 
-            LIMIT 1
-        '''
-        cursor.execute(check_query, (employee_id,))
-        last_log = cursor.fetchone()
-
-        if last_log:
-            last_log_time = last_log[0]
-
-            # Calculate the time difference between the last log and the current log
-            time_difference = (log_time - last_log_time).total_seconds()
-            
-            # Avoid inserting if the last log is within 10 seconds
-            if time_difference < 10:
-                print(f"Duplicate log avoided for employee {employee_id} at {log_time}. Time difference: {time_difference} seconds.")
-                return
-
-        # Insert the new log entry
-        insert_query = '''
+        query = '''
             INSERT INTO rawdata (employee_id, log_type, log_time, date)
             VALUES (%s, %s, %s, %s)
         '''
+
         values = (employee_id, log_type, log_time, log_time.date())
-        cursor.execute(insert_query, values)
+        cursor.execute(query, values)
         mydb.commit()
         print(f"Raw data logged for employee {employee_id} at {log_time}.")
-    
     except mysql.connector.Error as e:
         print(f"Error logging raw data: {e}")
-
 
 def load_known_encodings(cursor):
     """Load and parse face encodings from the database."""
@@ -212,6 +198,8 @@ def process_camera_frame(cursor, mydb, img, employee_encodings):
         if best_distance < 0.38:
             current_time = datetime.now()
             log_type= today_attendance(cursor, mydb, employee_id_best, current_time)
+
+            print("log_type before logging", log_type)
             log_raw_data(cursor, mydb, employee_id_best, current_time,log_type)
 
             # Draw rectangle and add label for the recognized face
