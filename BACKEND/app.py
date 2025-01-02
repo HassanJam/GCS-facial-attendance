@@ -234,7 +234,7 @@ def convert_image_to_numpy(image_bytes: bytes):
 
 
 
-@app.post("/app_attendance")
+@app.post("/app_attendance/")
 async def mark_attendance(
     file: UploadFile = File(...),
     x: str = Form(..., description="X-coordinate as a string"),
@@ -311,10 +311,10 @@ async def mark_attendance(
                 return {"result": "Attendance marked successfully", "employee_id": employee_id}
 
             else:
-                return {"result": "Failure", "message": "Face matching failed"}
+                return {"result": "Failure", "message": "No matching face found"}
         else:
             print("Unauthorized access")
-            return {"result": "Failure", "message": "Unauthorized access"}
+            return {"result": "Failure", "message": "Employee ID does not match face"}
 
     except mysql.connector.Error as err:
         print(f"Database error: {err}")
