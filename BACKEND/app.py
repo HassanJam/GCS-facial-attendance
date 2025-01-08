@@ -59,6 +59,7 @@ async def search_employee(query: Optional[str] = None):
         if not query:
             return []
 
+        print("trying to search")
         mydb = get_db_connection()
         cursor = mydb.cursor()
 
@@ -79,6 +80,7 @@ async def search_employee(query: Optional[str] = None):
             for emp in employees
         ]
 
+        print("result:", result)
         return result
 
     except Exception as e:

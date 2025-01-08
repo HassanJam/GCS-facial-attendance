@@ -40,22 +40,15 @@ def run_at_midnight(task_func):
         time_until_target = (target_time - now).total_seconds()
         
         print(f"Waiting {time_until_target} seconds until 5:07 PM...")
-        # time.sleep(time_until_target)  # Wait until 5:07 PM
+        time.sleep(time_until_target)  # Wait until 5:07 PM
         
         # Run the task at 5:07 PM
         print(f"Task started at: {datetime.now()}")
-
-        task_func()
-        print('Sleep started')
-        time.sleep(1)
-        print('Sleep ended')
-
-
         
         
 def mark_employee_absent(employee_id):
     """Marks the given employee as absent for the current day."""
-    query = f"INSERT INTO employee_management_attendance (employee_id, date, status, comments, is_overtime) VALUES ({employee_id}, CURDATE(), 'absent', 'initial absent', 0)"
+    query = f"INSERT INTO employee_management_employee (employee_id, date, status) VALUES ({employee_id}, CURDATE(), 'absent')"
     print(f"Query: {query}")
     conn = get_db_connection()
     cursor = conn.cursor()
