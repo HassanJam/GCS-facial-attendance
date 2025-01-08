@@ -42,9 +42,10 @@ def today_attendance(cursor, mydb, employee_id, log_time):
                         hours_worked = NULL,
                         is_overtime = 0,
                         Location = %s
-                    WHERE employee_id = %s
+                    WHERE employee_id = %s AND date = %s
                 '''
-                val = (log_time.time(), "late", "Logged late in", "office", employee_id)
+                val = (log_time.time(), "late", "Logged late in", "office", employee_id, date)
+
 
                 cursor.execute(sql, val)
                 mydb.commit()
@@ -58,9 +59,10 @@ def today_attendance(cursor, mydb, employee_id, log_time):
                     hours_worked = NULL,
                     is_overtime = 0,
                     Location = "office"
-                WHERE employee_id = %s
+                WHERE employee_id = %s AND date = %s
             '''
-            val = (log_time.time(),"present", "Logged in",employee_id)
+            val = (log_time.time(), "present", "Logged in", employee_id, date)
+
             cursor.execute(sql, val)
             mydb.commit()
             print(f"Time-in logged for employee {employee_id} at {log_time}.")
