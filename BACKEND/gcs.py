@@ -12,7 +12,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host="localhost",
             user="root",
-            password="CMS$GCS@123",
+            password="12345678",
             database="cms"
         )
     except mysql.connector.Error as e:
@@ -40,9 +40,9 @@ def today_attendance(cursor, mydb, employee_id, log_time):
                         hours_worked = NULL,
                         is_overtime = 0,
                         Location = %s
-                    WHERE employee_id = %s
+                    WHERE employee_id = %s AND date = %s
                 '''
-                val = (log_time.time(), "late", "Logged late in", "office", employee_id)
+                val = (log_time.time(), "late", "Logged late in", "office", employee_id, date)
 
                 cursor.execute(sql, val)
                 mydb.commit()
@@ -56,9 +56,9 @@ def today_attendance(cursor, mydb, employee_id, log_time):
                     hours_worked = NULL,
                     is_overtime = 0,
                     Location = "office"
-                WHERE employee_id = %s
+                WHERE employee_id = %s AND date = %s
             '''
-            val = (log_time.time(),"present", "Logged in",employee_id)
+            val = (log_time.time(), "present", "Logged in", employee_id, date)
             cursor.execute(sql, val)
             mydb.commit()
             print(f"Time-in logged for employee {employee_id} at {log_time}.")
@@ -145,16 +145,16 @@ def log_raw_data(cursor, mydb, employee_id, log_time, log_type):
         cursor.execute(check_query, (employee_id,))
         last_log = cursor.fetchone()
 
-        if last_log:
-            last_log_time = last_log[0]
+        # if last_log:
+        #     last_log_time = last_log[0]
 
-            # Calculate the time difference between the last log and the current log
-            time_difference = (log_time - last_log_time).total_seconds()
+        #     # Calculate the time difference between the last log and the current log
+        #     time_difference = (log_time - last_log_time).total_seconds()
             
-            # Avoid inserting if the last log is within 10 seconds
-            if time_difference < 10:
-                print(f"Duplicate log avoided for employee {employee_id} at {log_time}. Time difference: {time_difference} seconds.")
-                return
+        #     # Avoid inserting if the last log is within 10 seconds
+        #     if time_difference < 10:
+        #         print(f"Duplicate log avoided for employee {employee_id} at {log_time}. Time difference: {time_difference} seconds.")
+        #         return
 
         # Insert the new log entry
         insert_query = '''
@@ -381,11 +381,11 @@ def main():
 
     # Load encodings
     employee_encodings = load_known_encodings(cursor)
-    url = "rtsp://admin:Admin123@192.168.0.212:554/channel/1"
+    # url = "rtsp://admin:Admin123@192.168.0.212:554/channel/1"
 
-    cap, fps = start_stream(url)
-    #cap = cv2.VideoCapture(0)
-    fps.update()
+    # cap, fps = start_stream(url)
+    cap = cv2.VideoCapture(0)
+    # fps.update()
 
     refresh_interval = 60
     last_check_time = datetime.now()
@@ -408,7 +408,7 @@ def main():
             print("Attempting to reconnect...")
             cap.stop()  # Use the stop method
             time.sleep(1)
-            cap, fps = start_stream(url)  # Reinitialize stream
+            # cap, fps = start_stream(url)  # Reinitialize stream
             continue
         if success:
             img = process_camera_frame(cursor, mydb, img, employee_encodings)
@@ -430,7 +430,7 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
-    fps.stop()
+    # fps.stop()
     cursor.close()
     mydb.close()
 

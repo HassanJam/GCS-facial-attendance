@@ -7,7 +7,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host="localhost",
             user="root",
-            password="CMS$GCS@123",
+            password="12345678",
             database="cms"
         )
     except mysql.connector.Error as e:
@@ -26,12 +26,12 @@ def run_at_midnight(task_func):
     print(f"Current time: {now}")
 
     # Define the target time without microseconds
-    target_time = datetime(now.year, now.month, now.day, 0, 1, 0)  # 5:55 PM today
+    target_time = datetime(now.year, now.month, now.day, 16, 13, 0)  # 5:55 PM today
 
     
     # If it's already past 5:07 PM, set the target to 5:07 PM tomorrow
     if now > target_time:
-        target_time = datetime(now.year, now.month, now.day, 0, 1, 0) + timedelta(days=1)
+        target_time = datetime(now.year, now.month, now.day, 16, 13, 0) + timedelta(days=1)
 
     print(f"Target time: {target_time}")
 
@@ -44,18 +44,20 @@ def run_at_midnight(task_func):
         
         # Run the task at 5:07 PM
         print(f"Task started at: {datetime.now()}")
+
+        task_func()
+        time.sleep(1)  # Wait for a second to prevent the task from running multiple times
         
         
 def mark_employee_absent(employee_id):
     """Marks the given employee as absent for the current day."""
-    query = f"INSERT INTO employee_management_employee (employee_id, date, status) VALUES ({employee_id}, CURDATE(), 'absent')"
+    query = f"INSERT INTO employee_management_attendance (employee_id, date, status,comments, is_overtime) VALUES ({employee_id}, CURDATE(), 'absent','Initial absent', 0)"
     print(f"Query: {query}")
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(query)
     conn.commit()
     print(f"Employee {employee_id} marked as absent for today.")
-    
     
 def my_daily_function():
     print("Running my daily function...")
