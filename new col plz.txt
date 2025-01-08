@@ -1,1 +1,5 @@
 ALTER TABLE rawdata ADD COLUMN log_type ENUM('in', 'out') NOT NULL;
+
+
+ALTER TABLE employee_management_temp_appattendance 
+add COLUMN image LONGBLOB;
