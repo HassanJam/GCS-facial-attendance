@@ -12,7 +12,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host="localhost",
             user="root",
-            password="12345678",
+            password="CMS$GCS@123",
             database="cms"
         )
     except mysql.connector.Error as e:
@@ -42,10 +42,9 @@ def today_attendance(cursor, mydb, employee_id, log_time):
                         hours_worked = NULL,
                         is_overtime = 0,
                         Location = %s
-                    WHERE employee_id = %s AND date = %s
+                    WHERE employee_id = %s
                 '''
-                val = (log_time.time(), "late", "Logged late in", "office", employee_id, date)
-
+                val = (log_time.time(), "late", "Logged late in", "office", employee_id)
 
                 cursor.execute(sql, val)
                 mydb.commit()
@@ -59,10 +58,9 @@ def today_attendance(cursor, mydb, employee_id, log_time):
                     hours_worked = NULL,
                     is_overtime = 0,
                     Location = "office"
-                WHERE employee_id = %s AND date = %s
+                WHERE employee_id = %s
             '''
-            val = (log_time.time(), "present", "Logged in", employee_id, date)
-
+            val = (log_time.time(),"present", "Logged in",employee_id)
             cursor.execute(sql, val)
             mydb.commit()
             print(f"Time-in logged for employee {employee_id} at {log_time}.")
@@ -373,9 +371,9 @@ def main():
     employee_encodings = load_known_encodings(cursor)
     url = "rtsp://admin:Admin123@192.168.0.212:554/channel/1"
 
-    #cap, fps = start_stream(url)
-    cap = cv2.VideoCapture(0)
-    #fps.update()
+    cap, fps = start_stream(url)
+    #cap = cv2.VideoCapture(0)
+    fps.update()
 
     refresh_interval = 60
     last_check_time = datetime.now()
@@ -398,7 +396,7 @@ def main():
             print("Attempting to reconnect...")
             cap.stop()  # Use the stop method
             time.sleep(1)
-           # cap, fps = start_stream(url)  # Reinitialize stream
+            cap, fps = start_stream(url)  # Reinitialize stream
             continue
         if success:
             img = process_camera_frame(cursor, mydb, img, employee_encodings)
@@ -420,7 +418,7 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
-   # fps.stop()
+    fps.stop()
     cursor.close()
     mydb.close()
 

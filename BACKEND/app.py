@@ -32,7 +32,7 @@ app.add_middleware(
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="localhost", user="root", password="12345678", database="cms"
+        host="localhost", user="root", password="CMS$GCS@123", database="cms"
     )
 
 class AttendanceRecord(BaseModel):
@@ -288,8 +288,8 @@ async def mark_attendance(
                 # Step 2: Insert the data into the database (only if no existing entry found)
                 insert_query = """
                     INSERT INTO employee_management_temp_appattendance 
-                    (employee_id, time, date, log_type, x_coordinate, y_coordinate, location_address, status, image)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending', %s)
+                    (employee_id, time, date, log_type, x_coordinate, y_coordinate, location_address, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
                 """
                 cursor.execute(insert_query, (
                     employee_id,
@@ -298,10 +298,8 @@ async def mark_attendance(
                     log_type,
                     x,
                     y,
-                    address,
-                    image_bytes  # Insert the binary image data
+                    address
                 ))
-
 
                 # Commit the transaction
                 mydb.commit()

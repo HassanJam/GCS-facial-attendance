@@ -7,7 +7,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host="localhost",
             user="root",
-            password="12345678",
+            password="CMS$GCS@123",
             database="cms"
         )
     except mysql.connector.Error as e:
@@ -26,12 +26,12 @@ def run_at_midnight(task_func):
     print(f"Current time: {now}")
 
     # Define the target time without microseconds
-    target_time = datetime(now.year, now.month, now.day, 18, 44, 30)  # 5:55 PM today
+    target_time = datetime(now.year, now.month, now.day, 0, 1, 0)  # 5:55 PM today
 
     
     # If it's already past 5:07 PM, set the target to 5:07 PM tomorrow
     if now > target_time:
-        target_time = datetime(now.year, now.month, now.day, 17, 38, 0) + timedelta(days=1)
+        target_time = datetime(now.year, now.month, now.day, 0, 1, 0) + timedelta(days=1)
 
     print(f"Target time: {target_time}")
 
