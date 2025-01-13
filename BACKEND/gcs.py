@@ -5,7 +5,7 @@ import cv2
 import face_recognition
 from checkinimutil import WebCamVideoStream,FPS
 import time
-from mark_absent_logic import run_at_midnight,my_daily_function
+from mark_absent_logic import run_at_midnight,my_daily_function, reset_leaves
 def get_db_connection():
     """Establish and return a connection to the MySQL database."""
     try:
@@ -399,6 +399,8 @@ def main():
 
     while True:
         run_at_midnight(my_daily_function)
+        reset_leaves()
+        
 
         current_time = datetime.now()
         current_date = current_time.date()

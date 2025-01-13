@@ -48,6 +48,17 @@ def run_at_midnight(task_func):
         task_func()
         time.sleep(1)  # Wait for a second to prevent the task from running multiple times
         
+def reset_leaves():
+    now = datetime.now().replace(microsecond=0)
+    target_date = datetime(now.year, 6, 1, 1, 0)
+    print(target_date)
+    
+    if now == target_date:
+        query = "UPDATE employee_management_employee SET remaining_annual_leave=15, remaining_sick_leave=8, remaining_casual_leave=10; "
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        conn.commit()
         
 def mark_employee_absent(employee_id):
     """Marks the given employee as absent for the current day."""
