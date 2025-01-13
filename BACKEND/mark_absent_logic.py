@@ -1,5 +1,5 @@
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import mysql.connector
 def get_db_connection():
     """Establish and return a connection to the MySQL database."""
@@ -53,12 +53,18 @@ def reset_leaves():
     target_date = datetime(now.year, 6, 1, 1, 0)
     print(target_date)
     
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
     if now == target_date:
-        query = "UPDATE employee_management_employee SET remaining_annual_leave=15, remaining_sick_leave=8, remaining_casual_leave=10; "
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        query = "UPDATE employee_management_employee SET remaining_sick_leave=8, remaining_casual_leave=10;"
         cursor.execute(query)
-        conn.commit()
+
+    query = "UPDATE employee_management_employee SET remaining_annual_leave = 15 WHERE DATEDIFF(CURDATE(), employment_date) >= 365;"
+    cursor.execute(query)
+        
+    conn.commit()
+    conn.close()
         
 def mark_employee_absent(employee_id):
     """Marks the given employee as absent for the current day."""
